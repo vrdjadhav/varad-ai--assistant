@@ -56,7 +56,6 @@ if "quiz_evaluation" not in st.session_state:
     st.session_state.quiz_evaluation = None      # Stores the final graded MasterReport JSON
 
 
-
 # App Headers (Production Configuration)
 st.title("🤖 Intelligent Research Companion")
 st.caption("AI-powered document intelligence, contextual retrieval, and adaptive evaluation.")
@@ -170,8 +169,8 @@ with chat_tab:
                             st.write(chunk)
                             st.markdown("---")
 
-    # Handle New User Input (Kept entirely inside the active execution tab context)
-    if user_input := st.chat_input("Enter your command, Sir...", key="chat_input_widget"):
+    # Handle New User Input (Updated placeholder prompt to match TA persona)
+    if user_input := st.chat_input("Ask a question about the study materials...", key="chat_input_widget"):
         
         # Store user command in UI list immediately
         st.session_state.ui_history.append({"role": "user", "text": user_input, "citations": None})
@@ -184,18 +183,18 @@ with chat_tab:
                 context_payload = None
                 matched_fragments = []
                 
-                # Step A: Evaluate Traffic Intent Router
+                # Step A: Evaluate Traffic Intent Router (Updated loader spinner context)
                 routing_mode = "LOCAL"
                 if st.session_state.faiss_index is not None:
-                    with st.spinner("Analyzing intent profile matrix, Sir..."):
+                    with st.spinner("Analyzing your question's focus route..."):
                         routing_mode = determine_routing_intent(user_input)
                 
-                # Step B: Assemble Context Based On Intended Route
+                # Step B: Assemble Context Based On Intended Route (Updated loader spinner context)
                 if st.session_state.faiss_index is not None:
                     if routing_mode == "GLOBAL":
                         context_payload = st.session_state.global_text_pool
                     else:
-                        with st.spinner("Scanning localized document coordinates, Sir..."):
+                        with st.spinner("Scanning relevant document segments..."):
                             matched_fragments = search_vector_db(
                                 index=st.session_state.faiss_index,
                                 valid_chunks=st.session_state.mapped_chunks,
@@ -205,8 +204,8 @@ with chat_tab:
                             if matched_fragments:
                                 context_payload = "\n\n---\n\n".join(matched_fragments)
 
-                # Step C: Dispatch Request to Backend Engine
-                with st.spinner("Processing request, Sir..."):
+                # Step C: Dispatch Request to Backend Engine (Updated loader spinner context)
+                with st.spinner("Formulating explanation..."):
                     response_text = send_chat_message(
                         chat_session=st.session_state.gemini_chat, 
                         user_message=user_input, 
@@ -239,18 +238,18 @@ with quiz_tab:
     st.caption("This engine scans your active document pools to evaluate your conceptual comprehension.")
     
     if st.session_state.faiss_index is None:
-        st.info("ℹ️ Please upload study documents in the sidebar to activate the Agentic Quiz Engine, Sir.")
+        st.info("ℹ️ Please upload study documents in the sidebar to activate the Quiz Engine.")
     else:
         # Action trigger to invoke the Quiz Generation Agent
         if st.session_state.active_quiz is None:
             if st.button("⚡ Generate Customized Evaluation Quiz", use_container_width=True):
-                with st.spinner("Agentic Loop active: Extracting text metrics and formulating evaluation matrix..."):
+                with st.spinner("Analyzing study text blocks to formulate your quiz questions..."):
                     quiz_payload = generate_evaluation_quiz(st.session_state.mapped_chunks)
                     if quiz_payload:
                         st.session_state.active_quiz = quiz_payload
                         st.rerun()
                     else:
-                        st.error("❌ Failed to compile quiz assets. Please try again.") # <-- THE RETAINED FIX
+                        st.error("❌ Failed to compile quiz assets. Please try again.")
         else:
             # Render Active Quiz Layout
             st.markdown(f"### 📋 Evaluation: **{st.session_state.active_quiz['quiz_title']}**")
@@ -262,18 +261,18 @@ with quiz_tab:
                 st.markdown(f"**Question {q['question_id']}:** {q['question_text']}")
                 st.caption(f"📚 *Focus Area:* {q['topic']}")
                 
-                # Render unique text areas for responses with isolated dynamic keys
+                # Render unique text areas for responses with isolated dynamic keys (Updated placeholder prompt)
                 st.session_state.quiz_answers[str(q['question_id'])] = st.text_area(
                     "Your Answer Core Input:",
                     key=f"q_input_{q['question_id']}",
-                    placeholder="Type your explanation here, Sir..."
+                    placeholder="Type your explanation here..."
                 )
                 st.markdown("---")
                 
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("🚀 Submit Completed Assessment", use_container_width=True, type="primary"):
-                    with st.spinner("Evaluator Critic Agent Active: Analyzing accuracy scores and mapping weakness profiles..."):
+                    with st.spinner("Reviewing response accuracy and compiling feedback report..."):
                         report = evaluate_quiz_submission(
                             quiz_data=st.session_state.active_quiz,
                             user_answers=st.session_state.quiz_answers,
@@ -291,15 +290,15 @@ with quiz_tab:
 
             # --- RENDER EVALUATOR CRITIC REPORT CARD ---
             if st.session_state.quiz_evaluation:
-                st.markdown("## 📊 Agentic Evaluation Report Card")
+                st.markdown("## 📊 Evaluation Report Card")
                 score = st.session_state.quiz_evaluation["total_score_percentage"]
                 
                 if score >= 75:
-                    st.success(f"🏆 **Mastery Confirmed! Cumulative Score: {score}%**")
+                    st.success(f"🏆 **Great job! Cumulative Score: {score}%**")
                 elif score >= 45:
                     st.warning(f"⚠️ **Conceptual Gaps Found. Cumulative Score: {score}%**")
                 else:
-                    st.error(f"🚨 **Critical Remedial Focus Required. Cumulative Score: {score}%**")
+                    st.error(f"🚨 **Remedial Focus Recommended. Cumulative Score: {score}%**")
                     
                 st.markdown(f"### 🎯 Primary Knowledge Gap Identified:\n> *{st.session_state.quiz_evaluation['primary_knowledge_gap']}*")
                 

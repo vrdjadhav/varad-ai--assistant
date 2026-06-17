@@ -29,7 +29,6 @@ def determine_routing_intent(user_message):
 
     try:
         router_prompt = (
-            "You are a strict backend traffic routing microservice for a document AI system.\n"
             "Analyze the user's command and classify its scope into either 'GLOBAL' or 'LOCAL'.\n\n"
             "CRITERIA:\n"
             "- GLOBAL: The user wants an index, table of contents, full chapter list, a holistic summary of the "
@@ -67,24 +66,23 @@ def determine_routing_intent(user_message):
 
 def start_new_chat():
     """
-    Initializes a fresh Gemini chat session with an elite, highly sophisticated
-    butler persona, completely neutralized of any permanent project names.
+    Initializes a fresh Gemini chat session with an approachable, knowledgeable,
+    and encouraging Graduate Teaching Assistant (TA) persona.
     """
     try:
-        butler_instructions = (
-            "You are a highly sophisticated, articulate, and fiercely loyal AI companion "
-            "and professional right-hand man. Address the user with the utmost respect, "
-            "using terms like 'Sir' or 'Master'. "
-            "Your tone is exceptionally polite, formal, composed, and intellectually sharp. "
-            "When helping with documents, study guides, quizzes, or notes, execute them with "
-            "immaculate high-standard precision. If context is provided, rely on it completely "
-            "while maintaining your refined, high-standard demeanor. Never break character."
+        ta_instructions = (
+            "You are an approachable, knowledgeable, and highly encouraging Graduate Teaching Assistant (TA). "
+            "Your goal is to help the student break down their research documents and study materials clearly. "
+            "Use a warm, friendly, collaborative, and peer-to-peer tone. Keep explanations structurally organized, "
+            "easy to digest, and simplify complex academic logic without losing technical accuracy. "
+            "Always base your responses strictly on the provided document context. If a concept or question "
+            "isn't supported by the context text, let the student know honestly and guide them back to what is available."
         )
 
         chat = client.chats.create(
             model="gemini-2.5-flash",
             config=types.GenerateContentConfig(
-                system_instruction=butler_instructions,
+                system_instruction=ta_instructions,
                 temperature=0.4
             )
         )
@@ -99,7 +97,7 @@ def send_chat_message(chat_session, user_message, context=None, routing_mode="LO
     to handle massive text injections smoothly.
     """
     if chat_session is None:
-        return "⚠️ Apologies, Sir. The chat session could not be initialized at this time."
+        return "⚠️ Hey there! It looks like our chat session couldn't be initialized. Let's try refreshing the page."
         
     # Step 2 Optimization: Context Truncation Guard (approx. 800k character threshold)
     MAX_CHARACTER_THRESHOLD = 800000
@@ -111,17 +109,17 @@ def send_chat_message(chat_session, user_message, context=None, routing_mode="LO
         if context:
             if routing_mode == "GLOBAL":
                 full_prompt = (
-                    f"Sir, I have bypassed local fragment sorting and executed a holistic global structural scan "
-                    f"of the complete document matrix to satisfy your broad command.\n\n"
+                    f"Hey! I've bypassed the local chunk filters and executed a full global scan "
+                    f"of the entire document package to give you a broad overview.\n\n"
                     f"=== FULL SYSTEM DOCUMENT MATRIX ===\n{context}\n===================================\n\n"
-                    f"User Command: {user_message}"
+                    f"Student Query: {user_message}"
                 )
             else:
                 full_prompt = (
-                    f"Sir, I have completed a targeted scan of the uploaded document coordinates. "
-                    f"Please utilize these specific extracted fragments to address the query.\n\n"
+                    f"Hey! I ran a targeted scan on our vector database coordinates and found "
+                    f"these specific source text fragments to help answer your question.\n\n"
                     f"=== SYSTEM DOCUMENT SCAN ===\n{context}\n============================\n\n"
-                    f"User Command: {user_message}"
+                    f"Student Query: {user_message}"
                 )
         else:
             full_prompt = user_message
@@ -131,4 +129,4 @@ def send_chat_message(chat_session, user_message, context=None, routing_mode="LO
         
     except Exception as e:
         print(f"\n[CORE ERROR]: {e}\n")
-        return f"⚠️ Forgive me, Sir. An unexpected anomaly occurred while generating the response: {e}"
+        return f"⚠️ Oh no, it looks like an error popped up while getting the response: {e}"
